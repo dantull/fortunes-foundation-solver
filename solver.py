@@ -186,16 +186,18 @@ class GameState:
 
         return moves
 
-gs = GameState()
 
-print(gs)
-print("updates: " + str(len(gs.update_foundations())))
+if __name__ == "__main__":
+    gs = GameState()
 
-for dm, um in gs.all_moves():
-    dm()
     print(gs)
     print("updates: " + str(len(gs.update_foundations())))
-    um()
 
-print("updates: " + str(len(gs.update_foundations())))
-print(gs)
+    for dm, um in gs.all_moves():
+        dm()
+        print(gs)
+        print("updates: " + str(len(gs.update_foundations())))
+        um()
+
+    print("updates: " + str(len(gs.update_foundations())))
+    print(gs)
