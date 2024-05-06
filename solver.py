@@ -73,6 +73,14 @@ fisher_yates_shuffle(deck)
 def card_list(arr):
     return " ".join(map(str, map(short_card, arr)))
 
+def first(arr, pred):
+    for i, e in enumerate(arr):
+        if pred(e):
+            return i
+
+def first_empty(arr):
+    return first(arr, lambda e: len(e) == 0)
+
 class GameState:
     def __init__(self):
         self.foundations = map(lambda f: [f], foundations)
@@ -154,20 +162,18 @@ class GameState:
                 self.stash = None
             return fn
 
-        first_empty = None
-
         # moves for each stack top to the foundation stash
         if self.stash is None:
             for i, t in enumerate(self.stacks):
                 if len(t) > 0:
                     moves.append((move_to_stash(i), pop_stash(i)))
-                elif first_empty is None:
-                    first_empty = i
+
+        empty = first_empty(self.stacks)
 
         # move each top to the first empty stack
-        if first_empty is not None:
+        if empty is not None:
             def move_empty_pair(i):
-                return (move_stack_top(i, first_empty), move_stack_top(first_empty, i))
+                return (move_stack_top(i, empty), move_stack_top(empty, i))
 
             for i, t in enumerate(self.stacks):
                 if len(t) > 0:
@@ -186,7 +192,6 @@ class GameState:
 
         return moves
 
-
 if __name__ == "__main__":
     gs = GameState()
 
@@ -199,5 +204,5 @@ if __name__ == "__main__":
         print("updates: " + str(len(gs.update_foundations())))
         um()
 
-    print("updates: " + str(len(gs.update_foundations())))
     print(gs)
+    print("updates: " + str(len(gs.update_foundations())))
