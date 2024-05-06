@@ -173,19 +173,29 @@ class GameState:
                 if len(t) > 0:
                     moves.append(move_empty_pair(i))
 
+        # collect moves of top cards
+        for i, s1 in enumerate(self.stacks):
+            for j, s2 in enumerate(self.stacks):
+                # only consider each pair once, but since playable_on is always symmetric, each
+                # found pair implies two possible (but opposite) moves
+                if i > j and len(s1) > 0 and len(s2) > 0 and playable_on(s1[-1], s2[-1]):
+                    move_to_s2 = move_stack_top(i, j)
+                    move_to_s1 = move_stack_top(j, i)
+                    moves.append((move_to_s1, move_to_s2))
+                    moves.append((move_to_s2, move_to_s1))
+
         return moves
 
 gs = GameState()
 
 print(gs)
 print("updates: " + str(len(gs.update_foundations())))
+
 for dm, um in gs.all_moves():
     dm()
     print(gs)
     print("updates: " + str(len(gs.update_foundations())))
     um()
 
-print(len(gs.update_foundations()))
 print("updates: " + str(len(gs.update_foundations())))
-
-# print(gs)
+print(gs)
