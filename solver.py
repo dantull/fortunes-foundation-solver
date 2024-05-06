@@ -107,21 +107,40 @@ class GameState:
         # one that restores the GameState back to its former state.
         moves = []
 
-        def move_to_stash(self, i):
+        def move_to_stash(i):
             def fn():
                 self.stash = self.stacks[i].pop()
             return fn
 
-        def pop_stash(self, i):
+        def move_stack_top(i, j):
+            def fn():
+                self.stacks[j].append(self.stacks[i].pop())
+            return fn
+
+        def pop_stash(i):
             def fn():
                 self.stacks[i].append(self.stash)
                 self.stash = None
             return fn
 
+        first_empty = None
+
+        # moves for each stack top to the foundation stash
         if self.stash is None:
             for i, t in enumerate(self.stacks):
                 if len(t) > 0:
-                    moves.append((move_to_stash(self, i), pop_stash(self, i)))
+                    moves.append((move_to_stash(i), pop_stash(i)))
+                elif first_empty is None:
+                    first_empty = i
+
+        # move each top to the first empty stack
+        if first_empty is not None:
+            def move_empty_pair(i):
+                return (move_stack_top(i, first_empty), move_stack_top(first_empty, i))
+
+            for i, t in enumerate(self.stacks):
+                if len(t) > 0:
+                    moves.append(move_empty_pair(i))
 
         return moves
 
