@@ -12,10 +12,17 @@ from random import randrange
 
 SEGMENT = 16
 suits = ["Thorns", "Goblets", "Swords", "Coins"]
-ranks = list(map(str, list(range(2, 11))))
+ranks = ["A"]
+ranks.extend(list(map(str, list(range(2, 11)))))
 ranks.extend(["J", "Q", "K"])
-TAROT_BASE = (len(suits) + 1) * SEGMENT 
+TAROT_BASE = len(suits) * SEGMENT
+TAROT_COUNT = 22
 TAROT_NAME = "Tarot"
+
+# one ace of each suit and the bottom and top tarot cards
+foundations = list(map(lambda n: n * 16 + 1, range(0, len(suits))))
+foundations.append(TAROT_BASE - 1)
+foundations.append(TAROT_COUNT + TAROT_BASE)
 
 def make_deck():
     cards = []
@@ -23,7 +30,7 @@ def make_deck():
         s = s * SEGMENT
         cards.extend(range(2 + s, 14 + s))
 
-    cards.extend(range(TAROT_BASE, TAROT_BASE + 22))
+    cards.extend(range(TAROT_BASE, TAROT_BASE + TAROT_COUNT))
 
     return cards
 
@@ -31,7 +38,7 @@ def card(n):
     d = n // SEGMENT
 
     if d < len(suits):
-        return (ranks[n % 16 - 2], suits[d])
+        return (ranks[n % 16 - 1], suits[d])
     else:
         return (str(n - TAROT_BASE), TAROT_NAME)
 
@@ -51,6 +58,6 @@ fisher_yates_shuffle(deck)
 
 pprint(split(list(map(card, deck)), 7))
 
-
-print(card(deck[0]), list(map(card, filter(lambda c: playable_on(deck[0], c), deck))))
+for f in foundations:
+    print(list(map(card, filter(lambda c: playable_on(f, c), deck))))
 
