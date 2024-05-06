@@ -8,12 +8,14 @@
 #
 # valid moves: always 1 card at a time, matching types (movement of all "stacked" items at once to an empty stack may be worth representing)
 from pprint import pprint
+from random import randrange
 
 SEGMENT = 16
 suits = ["Thorns", "Goblets", "Swords", "Coins"]
 ranks = list(map(str, list(range(2, 11))))
-ranks.extend(["Jack", "Queen", "King"])
+ranks.extend(["J", "Q", "K"])
 TAROT_BASE = (len(suits) + 1) * SEGMENT 
+TAROT_NAME = "Tarot"
 
 def make_deck():
     cards = []
@@ -31,6 +33,24 @@ def card(n):
     if d < len(suits):
         return (ranks[n % 16 - 2], suits[d])
     else:
-        return (str(n - TAROT_BASE), "Tarot")
+        return (str(n - TAROT_BASE), TAROT_NAME)
 
-pprint(list(map(card, make_deck())))
+def playable_on(c1, c2):
+    return abs(c1 - c2) == 1
+
+def fisher_yates_shuffle(arr):
+    for i in range(len(arr)-1, 0, -1):
+        j = randrange(i + 1)
+        arr[i], arr[j] = arr[j], arr[i]
+
+def split(arr, n):
+    return [arr[i:i + n] for i in range(0, len(arr), n)]
+
+deck = make_deck()
+fisher_yates_shuffle(deck)
+
+pprint(split(list(map(card, deck)), 7))
+
+
+print(card(deck[0]), list(map(card, filter(lambda c: playable_on(deck[0], c), deck))))
+
