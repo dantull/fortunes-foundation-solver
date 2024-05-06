@@ -75,19 +75,50 @@ def card_list(arr):
 
 class GameState:
     def __init__(self):
-        self.foundations = foundations.copy()
+        self.foundations = map(lambda f: [f], foundations)
         deck = make_deck()
         fisher_yates_shuffle(deck)
         self.stacks = split(deck, 7)
         self.stacks.insert(5, [])
         self.stash = None
-        self.moves = []
+        self.changes = []
 
     def __repr__(self):
         return (SEPARATOR +
             "stash: " + (self.stash is not None and short_card(self.stash) or "") + "\n\n" +
             "\n".join(map(card_list, self.stacks))
             + SEPARATOR)
+
+    def update_foundations(self):
+        # generate a list of updates to apply to move cards from stacks to foundations, each
+        # update is like a move (below): a pair of functions, one to perform the move and the
+        # other to undo it (to do all updates, the undo has to be done in reverse order)
+
+        def move_top_to_foundation(si, fi):
+            def fn():
+                self.foundations[fi].append(self.stacks[si].pop())
+            return fn
+
+        def return_to_stack(si, fi):
+            def fn():
+                self.foundations[fi].append(self.stacks[si].pop())
+            return fn
+
+        updates = []
+        
+        while True:
+            start = len(updates)
+            for i, s in enumerate(self.stacks):
+                for j, f in enumerate(self.foundations):
+                    if len(s) > 0:
+                        if playable_on(s[-1], f[-1]):
+                            updates.append((move_top_to_foundation(i, j), return_to_stack(i, j)))
+
+            # continue until no more moves exist
+            if len(updates) == start:
+                break
+
+        return updates
 
     def all_moves(self):
         # kinds of moves:
@@ -147,9 +178,14 @@ class GameState:
 gs = GameState()
 
 print(gs)
+print("updates: " + str(len(gs.update_foundations())))
 for dm, um in gs.all_moves():
     dm()
     print(gs)
+    print("updates: " + str(len(gs.update_foundations())))
     um()
 
-print(gs)
+print(len(gs.update_foundations()))
+print("updates: " + str(len(gs.update_foundations())))
+
+# print(gs)
