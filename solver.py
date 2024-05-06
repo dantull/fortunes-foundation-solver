@@ -47,6 +47,8 @@ def card(n):
         return (str(n - TAROT_BASE), TAROT_NAME)
 
 def short_card(n):
+    if n == TAROT_BASE - 1 or n == TAROT_COUNT + TAROT_BASE:
+        return ""
     (r, s) = card(n)
     if s == TAROT_NAME:
         return r
@@ -83,7 +85,7 @@ def first_empty(arr):
 
 class GameState:
     def __init__(self):
-        self.foundations = map(lambda f: [f], foundations)
+        self.foundations = list(map(lambda f: [f], foundations))
         deck = make_deck()
         fisher_yates_shuffle(deck)
         self.stacks = split(deck, 7)
@@ -93,8 +95,9 @@ class GameState:
 
     def __repr__(self):
         return (SEPARATOR +
-            "stash: " + (self.stash is not None and short_card(self.stash) or "") + "\n\n" +
-            "\n".join(map(card_list, self.stacks))
+            "stash: " + (self.stash is not None and short_card(self.stash) or "") + "\n\n"
+            + "\n".join(map(card_list, self.foundations))
+            + "\n".join(map(card_list, self.stacks))
             + SEPARATOR)
 
     def update_foundations(self):
