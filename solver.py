@@ -12,6 +12,7 @@ from random import randrange
 
 SEGMENT = 16
 suits = ["Thorns", "Goblets", "Swords", "Coins"]
+suit_indexes = dict(zip(suits, range(0, len(suits))))
 short_suits = dict(zip(suits, ["/", "v", "t", "*"]))
 ranks = ["A"]
 ranks.extend(list(map(str, list(range(2, 11)))))
@@ -28,11 +29,19 @@ foundations = list(map(lambda n: n * 16 + 1, range(0, len(suits))))
 foundations.append(TAROT_BASE - 1)
 foundations.append(TAROT_COUNT + TAROT_BASE)
 
+def make_card(rank, suit):
+    if suit == TAROT_NAME:
+        return int(rank) + TAROT_BASE
+    else:
+        si = suit_indexes[suit]
+        ri = ranks.index(rank) + 1
+
+        return si * SEGMENT + ri
+
 def make_deck():
     cards = []
-    for s in range(0, len(suits)):
-        s = s * SEGMENT
-        cards.extend(range(2 + s, 14 + s))
+    for s in suits:
+        cards.extend(map(lambda r: make_card(r, s), ranks[2:]))
 
     cards.extend(range(TAROT_BASE, TAROT_BASE + TAROT_COUNT))
 
@@ -101,7 +110,7 @@ class GameState:
     def __repr__(self):
         return (SEPARATOR +
             "stash: " + (self.stash is not None and short_card(self.stash) or "") + "\n\n"
-            + "\n".join(map(card_list, self.foundations))
+            + "\n".join(map(card_list, self.foundations)) + "\n"
             + "\n".join(map(card_list, self.stacks))
             + SEPARATOR)
 
