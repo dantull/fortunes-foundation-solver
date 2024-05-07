@@ -24,13 +24,38 @@ class TestCardCreation(unittest.TestCase):
         def short_card(r, s):
             return solver.short_card(solver.make_card(r, s))
 
-        self.assertEquals(short_card("5", "Thorns"), "5/")
-        self.assertEquals(short_card("K", "Swords"), "Kt")
-        self.assertEquals(short_card("10", "Goblets"), "10v")
-        self.assertEquals(short_card("A", "Swords"), "At")
-        self.assertEquals(short_card("8", "Coins"), "8*")
-        self.assertEquals(short_card("0", solver.TAROT_NAME), "0")
-        self.assertEquals(short_card("20", solver.TAROT_NAME), "20")
+        self.assertEqual(short_card("5", "Thorns"), "5/")
+        self.assertEqual(short_card("K", "Swords"), "Kt")
+        self.assertEqual(short_card("10", "Goblets"), "10v")
+        self.assertEqual(short_card("A", "Swords"), "At")
+        self.assertEqual(short_card("8", "Coins"), "8*")
+        self.assertEqual(short_card("0", solver.TAROT_NAME), "0")
+        self.assertEqual(short_card("20", solver.TAROT_NAME), "20")
+
+    def test_playable_on(self):
+        cases = [
+            (("5", "Coins"), ("6", "Coins"), True),
+            (("5", "Coins"), ("4", "Coins"), True),
+            (("5", "Coins"), ("7", "Coins"), False),
+            (("5", "Coins"), ("6", "Goblets"), False),
+            (("7", "Goblets"), ("6", "Goblets"), True),
+            (("5", "Coins"), ("6", "Goblets"), False),
+            (("0", solver.TAROT_NAME), ("1", solver.TAROT_NAME), True),
+            (("21", solver.TAROT_NAME), ("20", solver.TAROT_NAME), True),
+            (("21", solver.TAROT_NAME), ("0", solver.TAROT_NAME), False),
+        ]
+
+        for (c1, c2, res) in cases:
+            self.assertEqual(solver.playable_on(solver.make_card(*c1), solver.make_card(*c2)), res)
+
+    def test_make_stacks(self):
+        stacks = solver.make_stacks()
+        self.assertEqual(len(stacks), 11)
+        for i, s in enumerate(stacks):
+            if i == 5:
+                self.assertEqual(len(s), 0)
+            else:
+                self.assertEqual(len(s), 7)
 
 if __name__ == "__main__":
     unittest.main()
