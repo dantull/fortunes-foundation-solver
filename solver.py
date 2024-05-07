@@ -83,13 +83,18 @@ def first(arr, pred):
 def first_empty(arr):
     return first(arr, lambda e: len(e) == 0)
 
+def make_stacks():
+    deck = make_deck()
+    fisher_yates_shuffle(deck)
+    stacks = split(deck, 7)
+    stacks.insert(5, [])
+
+    return stacks
+
 class GameState:
-    def __init__(self):
+    def __init__(self, stacks):
         self.foundations = list(map(lambda f: [f], foundations))
-        deck = make_deck()
-        fisher_yates_shuffle(deck)
-        self.stacks = split(deck, 7)
-        self.stacks.insert(5, [])
+        self.stacks = stacks
         self.stash = None
         self.changes = []
 
@@ -106,9 +111,7 @@ class GameState:
         # other to undo it (to do all updates, the undo has to be done in reverse order)
 
         def move_top_to_foundation(si, fi):
-            def fn():
-                self.foundations[fi].append(self.stacks[si].pop())
-            return fn
+            self.foundations[fi].append(self.stacks[si].pop())
 
         def return_to_stack(si, fi):
             def fn():
@@ -123,13 +126,24 @@ class GameState:
                 for j, f in enumerate(self.foundations):
                     if len(s) > 0:
                         if playable_on(s[-1], f[-1]):
-                            updates.append((move_top_to_foundation(i, j), return_to_stack(i, j)))
+                            move_top_to_foundation(i, j)
+                            updates.append(return_to_stack(i, j))
 
             # continue until no more moves exist
             if len(updates) == start:
                 break
 
-        return updates
+        updates.reverse()
+
+        def undo_all():
+            if len(updates) > 0:
+                # FIXME: write unit tests for this, it is currently buggy
+                pass
+
+            for fn in updates:
+                fn()
+
+        return undo_all
 
     def all_moves(self):
         # kinds of moves:
@@ -196,16 +210,17 @@ class GameState:
         return moves
 
 if __name__ == "__main__":
-    gs = GameState()
+    gs = GameState(make_stacks())
 
     print(gs)
-    print("updates: " + str(len(gs.update_foundations())))
+    uf = gs.update_foundations()
 
     for dm, um in gs.all_moves():
         dm()
+        ufm = gs.update_foundations()
         print(gs)
-        print("updates: " + str(len(gs.update_foundations())))
+        ufm()
         um()
 
+    uf()
     print(gs)
-    print("updates: " + str(len(gs.update_foundations())))
