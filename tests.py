@@ -96,5 +96,25 @@ class TestCardCreation(unittest.TestCase):
 
         self.assertEqual(before, after)
 
+    def test_top_stacking(self):
+        stacks = [
+            stack_of([("8", "Goblets")]),
+            stack_of([("4", "Coins")]),
+            stack_of([("5", "Coins")]),
+            stack_of([("9", "Goblets")]),
+        ]
+
+        gs = solver.GameState(stacks)
+        self.assertIsNone(solver.first_empty(gs.stacks))
+        before = repr(gs)
+        moves = gs.all_moves()
+        for (do_move, undo_move) in moves:
+            do_move()
+            self.assertIsNotNone(solver.first_empty(gs.stacks))
+            undo_move()
+
+        self.assertEqual(before, repr(gs))
+
 if __name__ == "__main__":
     unittest.main()
+
