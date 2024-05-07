@@ -74,9 +74,6 @@ def fisher_yates_shuffle(arr):
 def split(arr, n):
     return [arr[i:i + n] for i in range(0, len(arr), n)]
 
-def top(arr):
-    return len(arr) > 0 and arr[-1] or None
-
 deck = make_deck()
 fisher_yates_shuffle(deck)
 
