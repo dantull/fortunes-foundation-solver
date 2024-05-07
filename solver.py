@@ -7,7 +7,6 @@
 # * 4 suit foundations: all start with ace in play, build upward in order, ending with K
 #
 # valid moves: always 1 card at a time, matching types (movement of all "stacked" items at once to an empty stack may be worth representing)
-from pprint import pprint
 from random import randrange
 
 SEGMENT = 16
