@@ -1,6 +1,9 @@
 import unittest
 import solver
 
+def stack_of(cards):
+    return list(map(lambda c: solver.make_card(*c), cards))
+
 class TestCardCreation(unittest.TestCase):
     def test_make_card(self):
         for rank in solver.ranks:
@@ -48,6 +51,12 @@ class TestCardCreation(unittest.TestCase):
         for (c1, c2, res) in cases:
             self.assertEqual(solver.playable_on(solver.make_card(*c1), solver.make_card(*c2)), res)
 
+    def test_first_empty(self):
+        arr = [[1], [2, 3], [], [4]]
+        no_emp = [[1], [2, 2], [3]]
+        self.assertEqual(solver.first_empty(arr), 2)
+        self.assertEqual(solver.first_empty(no_emp), None)
+
     def test_make_stacks(self):
         stacks = solver.make_stacks()
         self.assertEqual(len(stacks), 11)
@@ -56,6 +65,20 @@ class TestCardCreation(unittest.TestCase):
                 self.assertEqual(len(s), 0)
             else:
                 self.assertEqual(len(s), 7)
+
+    def test_empty_GameState(self):
+        gs = solver.GameState([])
+        self.assertEqual(len(gs.all_moves()), 0)
+
+    def test_trivial_GameState(self):
+        stacks = [
+            stack_of([("2", "Coins")]),
+            []
+        ]
+
+        gs = solver.GameState(stacks)
+        moves = gs.all_moves()
+        self.assertEqual(len(moves), 2)
 
 if __name__ == "__main__":
     unittest.main()
