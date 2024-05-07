@@ -40,7 +40,7 @@ def make_card(rank, suit):
 def make_deck():
     cards = []
     for s in suits:
-        cards.extend(map(lambda r: make_card(r, s), ranks[2:]))
+        cards.extend(map(lambda r: make_card(r, s), ranks[1:]))
 
     cards.extend(range(TAROT_BASE, TAROT_BASE + TAROT_COUNT))
 
