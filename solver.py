@@ -123,7 +123,7 @@ class GameState:
 
         def return_to_stack(si, fi):
             def fn():
-                self.foundations[fi].append(self.stacks[si].pop())
+                self.stacks[si].append(self.foundations[fi].pop())
             return fn
 
         updates = []
@@ -144,10 +144,6 @@ class GameState:
         updates.reverse()
 
         def undo_all():
-            if len(updates) > 0:
-                # FIXME: write unit tests for this, it is currently buggy
-                pass
-
             for fn in updates:
                 fn()
 

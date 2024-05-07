@@ -80,5 +80,21 @@ class TestCardCreation(unittest.TestCase):
         moves = gs.all_moves()
         self.assertEqual(len(moves), 2)
 
+        for (do_move, undo_move) in moves:
+            before = repr(gs)
+            do_move()
+            self.assertNotEqual(before, repr(gs))
+            undo_move()
+            after = repr(gs)
+            self.assertEqual(before, after)
+
+        before = repr(gs)
+        undo = gs.update_foundations()
+        self.assertNotEqual(before, repr(gs))
+        undo()
+        after = repr(gs)
+
+        self.assertEqual(before, after)
+
 if __name__ == "__main__":
     unittest.main()
