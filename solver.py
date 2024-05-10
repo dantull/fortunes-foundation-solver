@@ -151,6 +151,7 @@ class GameState:
         # * play a top card onto a top card (implies an inverse move exists)
         # * play a top card onto the stash (foundation) if available
         # * play a top card onto an empty stack if there is one
+        # * play the stash card onto another top card
         #
         # might consider moving a whole stack of cards as one move if
         # they are already assembled and moving to a stack since that's
@@ -188,6 +189,10 @@ class GameState:
             for i, t in enumerate(self.stacks):
                 if len(t) > 0:
                     moves.append((move_to_stash(i), pop_stash(i)))
+        else:
+            # FIXME: should generate moves of stash card onto another
+            # stacks where possible.
+            pass
 
         empty = first_empty(self.stacks)
 
@@ -247,7 +252,7 @@ def try_solve(gs):
         else:
             (moves, undo) = stack.pop()
             print("backtrack", len(stack))
-            # undo the last move and its updates
+                # undo the last move and its updates
             undo()
 
 if __name__ == "__main__":
