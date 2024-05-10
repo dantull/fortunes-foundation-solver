@@ -166,16 +166,19 @@ class GameState:
 
         def move_to_stash(i):
             def fn():
+                print("stash", i)
                 self.stash = self.stacks[i].pop()
             return fn
 
         def move_stack_top(i, j):
             def fn():
+                print("move stack", i, j)
                 self.stacks[j].append(self.stacks[i].pop())
             return fn
 
         def pop_stash(i):
             def fn():
+                print("pop stash", i)
                 self.stacks[i].append(self.stash)
                 self.stash = None
             return fn
@@ -210,18 +213,45 @@ class GameState:
 
         return moves
 
+def try_solve(gs):
+    # basic solving strategy is to enumerate possible moves and try each
+    # one, stashing the remaining moves for backtracking and continue
+    # after each move, let foundations update, but also preserve that
+    # undo script to get back to original state
+    #
+    # One key issue is that it will be necessary to avoid immediately
+    # undoing the previous move (or maybe more generally returning to
+    # any already processed state?)
+    stack = []
+
+    def compose(um, undo_fd):
+        def fn():
+            undo_fd()
+            um()
+
+        return fn
+
+    moves = None
+
+    while True:
+        print(gs)
+        
+        moves = moves or gs.all_moves()
+
+        if len(moves) > 0:
+            print("making move", len(stack))
+            (dm, um) = moves.pop()
+            dm()
+            stack.append((moves, compose(um, gs.update_foundations())))
+            moves = None
+        else:
+            (moves, undo) = stack.pop()
+            print("backtrack", len(stack))
+            # undo the last move and its updates
+            undo()
+
 if __name__ == "__main__":
     gs = GameState(make_stacks())
+    undo = gs.update_foundations()
 
-    print(gs)
-    uf = gs.update_foundations()
-
-    for dm, um in gs.all_moves():
-        dm()
-        ufm = gs.update_foundations()
-        print(gs)
-        ufm()
-        um()
-
-    uf()
-    print(gs)
+    try_solve(gs)
