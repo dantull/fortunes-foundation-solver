@@ -3,7 +3,7 @@ import solver
 
 CardDesc = tuple[str, str]
 
-def stack_of(cards:list[CardDesc]) -> list[int]:
+def stack_of(cards:list[CardDesc]) -> list[solver.Card]:
     return list(map(lambda c: solver.make_card(*c), cards))
 
 class TestCardCreation(unittest.TestCase):

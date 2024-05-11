@@ -29,17 +29,19 @@ foundations = list(map(lambda n: n * 16 + 1, range(0, len(suits))))
 foundations.append(TAROT_BASE - 1)
 foundations.append(TAROT_COUNT + TAROT_BASE)
 
-def make_card(rank: str, suit: str) -> int:
+Card = int
+
+def make_card(rank: str, suit: str) -> Card:
     if suit == TAROT_NAME:
-        return int(rank) + TAROT_BASE
+        return Card(rank) + TAROT_BASE
     else:
         si = suit_indexes[suit]
         ri = ranks.index(rank) + 1
 
         return si * SEGMENT + ri
 
-def make_deck() -> list[int]:
-    cards:list[int] = []
+def make_deck() -> list[Card]:
+    cards:list[Card] = []
     for s in suits:
         cards.extend(map(lambda r: make_card(r, s), ranks[1:]))
 
@@ -47,7 +49,7 @@ def make_deck() -> list[int]:
 
     return cards
 
-def card(n:int) -> tuple[str, str]:
+def card(n:Card) -> tuple[str, str]:
     d = n // SEGMENT
 
     if d < len(suits):
@@ -55,7 +57,7 @@ def card(n:int) -> tuple[str, str]:
     else:
         return (str(n - TAROT_BASE), TAROT_NAME)
 
-def short_card(n:int) -> str:
+def short_card(n:Card) -> str:
     if n == TAROT_BASE - 1 or n == TAROT_COUNT + TAROT_BASE:
         return ""
     (r, s) = card(n)
@@ -64,21 +66,21 @@ def short_card(n:int) -> str:
     else:
         return r + short_suits[s]
 
-def playable_on(c1:int, c2:int) -> bool:
+def playable_on(c1:Card, c2:Card) -> bool:
     return abs(c1 - c2) == 1
 
-def fisher_yates_shuffle(arr:list[int]) -> None:
+def fisher_yates_shuffle(arr:list[Card]) -> None:
     for i in range(len(arr)-1, 0, -1):
         j = randrange(i + 1)
         arr[i], arr[j] = arr[j], arr[i]
 
-def split(arr:list[int], n:int) -> list[list[int]]:
+def split(arr:list[Card], n:int) -> list[list[Card]]:
     return [arr[i:i + n] for i in range(0, len(arr), n)]
 
 deck = make_deck()
 fisher_yates_shuffle(deck)
 
-def card_list(arr:list[int]) -> str:
+def card_list(arr:list[Card]) -> str:
     return " ".join(map(str, map(short_card, arr)))
 
 T = TypeVar('T')
@@ -93,7 +95,7 @@ def first(arr:list[T], pred:Callable[[T], bool]) -> Optional[int]:
 def first_empty(arr:list[list[T]]) -> Optional[int]:
     return first(arr, lambda e: len(e) == 0)
 
-def make_stacks() -> list[list[int]]:
+def make_stacks() -> list[list[Card]]:
     deck = make_deck()
     fisher_yates_shuffle(deck)
     stacks = split(deck, 7)
@@ -106,10 +108,10 @@ UndoRedoPair = tuple[ZeroParamFunction, ZeroParamFunction]
 MovesWithUndo = tuple[list[UndoRedoPair], ZeroParamFunction]
 
 class GameState:
-    def __init__(self, stacks:list[list[int]]):
+    def __init__(self, stacks:list[list[Card]]):
         self.foundations = list(map(lambda f: [f], foundations))
         self.stacks = stacks
-        self.stash:Optional[int] = None
+        self.stash:Optional[Card] = None
 
     def __repr__(self) -> str:
         return (SEPARATOR +
