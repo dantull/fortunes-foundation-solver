@@ -102,7 +102,7 @@ def make_stacks() -> list[list[Card]]:
     stacks.insert(5, [])
 
     return stacks
-2
+
 ZeroParamFunction = Callable[[], None]
 UndoRedoPair = tuple[ZeroParamFunction, ZeroParamFunction]
 MovesWithUndo = tuple[list[UndoRedoPair], ZeroParamFunction]
