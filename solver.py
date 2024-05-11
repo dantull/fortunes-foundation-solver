@@ -8,6 +8,7 @@
 #
 # valid moves: always 1 card at a time, matching types (movement of all "stacked" items at once to an empty stack may be worth representing)
 from random import randrange
+from typing import Callable, Optional, TypeVar
 
 SEGMENT = 16
 suits = ["Thorns", "Goblets", "Swords", "Coins"]
@@ -28,7 +29,7 @@ foundations = list(map(lambda n: n * 16 + 1, range(0, len(suits))))
 foundations.append(TAROT_BASE - 1)
 foundations.append(TAROT_COUNT + TAROT_BASE)
 
-def make_card(rank, suit):
+def make_card(rank: str, suit: str) -> int:
     if suit == TAROT_NAME:
         return int(rank) + TAROT_BASE
     else:
@@ -37,8 +38,8 @@ def make_card(rank, suit):
 
         return si * SEGMENT + ri
 
-def make_deck():
-    cards = []
+def make_deck() -> list[int]:
+    cards:list[int] = []
     for s in suits:
         cards.extend(map(lambda r: make_card(r, s), ranks[1:]))
 
@@ -46,7 +47,7 @@ def make_deck():
 
     return cards
 
-def card(n):
+def card(n:int) -> tuple[str, str]:
     d = n // SEGMENT
 
     if d < len(suits):
@@ -54,7 +55,7 @@ def card(n):
     else:
         return (str(n - TAROT_BASE), TAROT_NAME)
 
-def short_card(n):
+def short_card(n:int) -> str:
     if n == TAROT_BASE - 1 or n == TAROT_COUNT + TAROT_BASE:
         return ""
     (r, s) = card(n)
@@ -63,67 +64,74 @@ def short_card(n):
     else:
         return r + short_suits[s]
 
-def playable_on(c1, c2):
+def playable_on(c1:int, c2:int) -> bool:
     return abs(c1 - c2) == 1
 
-def fisher_yates_shuffle(arr):
+def fisher_yates_shuffle(arr:list[int]) -> None:
     for i in range(len(arr)-1, 0, -1):
         j = randrange(i + 1)
         arr[i], arr[j] = arr[j], arr[i]
 
-def split(arr, n):
+def split(arr:list[int], n:int) -> list[list[int]]:
     return [arr[i:i + n] for i in range(0, len(arr), n)]
 
 deck = make_deck()
 fisher_yates_shuffle(deck)
 
-def card_list(arr):
+def card_list(arr:list[int]) -> str:
     return " ".join(map(str, map(short_card, arr)))
 
-def first(arr, pred):
+T = TypeVar('T')
+
+def first(arr:list[T], pred:Callable[[T], bool]) -> Optional[int]:
     for i, e in enumerate(arr):
         if pred(e):
             return i
+        
+    return None
 
-def first_empty(arr):
+def first_empty(arr:list[list[T]]) -> Optional[int]:
     return first(arr, lambda e: len(e) == 0)
 
-def make_stacks():
+def make_stacks() -> list[list[int]]:
     deck = make_deck()
     fisher_yates_shuffle(deck)
     stacks = split(deck, 7)
     stacks.insert(5, [])
 
     return stacks
+2
+ZeroParamFunction = Callable[[], None]
+UndoRedoPair = tuple[ZeroParamFunction, ZeroParamFunction]
+MovesWithUndo = tuple[list[UndoRedoPair], ZeroParamFunction]
 
 class GameState:
-    def __init__(self, stacks):
+    def __init__(self, stacks:list[list[int]]):
         self.foundations = list(map(lambda f: [f], foundations))
         self.stacks = stacks
-        self.stash = None
-        self.changes = []
+        self.stash:Optional[int] = None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (SEPARATOR +
             "stash: " + (self.stash is not None and short_card(self.stash) or "") + "\n\n"
             + "\n".join(map(card_list, self.foundations)) + "\n"
             + "\n".join(map(card_list, self.stacks))
             + SEPARATOR)
 
-    def update_foundations(self):
+    def update_foundations(self) -> Callable[[], None]:
         # generate a list of updates to apply to move cards from stacks to foundations, each
         # update is like a move (below): a pair of functions, one to perform the move and the
         # other to undo it (to do all updates, the undo has to be done in reverse order)
 
-        def move_top_to_foundation(si, fi):
+        def move_top_to_foundation(si:int, fi:int) -> None:
             self.foundations[fi].append(self.stacks[si].pop())
 
-        def return_to_stack(si, fi):
-            def fn():
+        def return_to_stack(si:int, fi:int) -> ZeroParamFunction:
+            def fn() -> None:
                 self.stacks[si].append(self.foundations[fi].pop())
             return fn
 
-        updates = []
+        updates:list[ZeroParamFunction] = []
         
         while True:
             start = len(updates)
@@ -140,13 +148,13 @@ class GameState:
 
         updates.reverse()
 
-        def undo_all():
+        def undo_all() -> None:
             for fn in updates:
                 fn()
 
         return undo_all
 
-    def all_moves(self):
+    def all_moves(self) -> list[UndoRedoPair]:
         # kinds of moves:
         # * play a top card onto a top card (implies an inverse move exists)
         # * play a top card onto the stash (foundation) if available
@@ -163,23 +171,25 @@ class GameState:
         #
         # a move is a pair of functions, one that performs the move and
         # one that restores the GameState back to its former state.
-        moves = []
+        moves:list[UndoRedoPair] = []
 
-        def move_to_stash(i):
-            def fn():
+        def move_to_stash(i:int) -> ZeroParamFunction:
+            def fn() -> None:
                 print("stash", i)
                 self.stash = self.stacks[i].pop()
             return fn
 
-        def move_stack_top(i, j):
-            def fn():
+        def move_stack_top(i:int, j:int) -> ZeroParamFunction:
+            def fn() -> None:
                 print("move stack", i, j)
                 self.stacks[j].append(self.stacks[i].pop())
             return fn
 
-        def pop_stash(i):
-            def fn():
+        def pop_stash(i:int) -> ZeroParamFunction:
+            def fn() -> None:
                 print("pop stash", i)
+                if not self.stash:
+                    raise TypeError("stash must have a value")
                 self.stacks[i].append(self.stash)
                 self.stash = None
             return fn
@@ -198,7 +208,7 @@ class GameState:
 
         # move each top to the first empty stack
         if empty is not None:
-            def move_empty_pair(i):
+            def move_empty_pair(i:int) -> UndoRedoPair:
                 return (move_stack_top(i, empty), move_stack_top(empty, i))
 
             for i, t in enumerate(self.stacks):
@@ -218,7 +228,7 @@ class GameState:
 
         return moves
 
-def try_solve(gs):
+def try_solve(gs:GameState) -> None:
     # basic solving strategy is to enumerate possible moves and try each
     # one, stashing the remaining moves for backtracking and continue
     # after each move, let foundations update, but also preserve that
@@ -227,10 +237,10 @@ def try_solve(gs):
     # One key issue is that it will be necessary to avoid immediately
     # undoing the previous move (or maybe more generally returning to
     # any already processed state?)
-    stack = []
+    stack:list[MovesWithUndo] = []
 
-    def compose(um, undo_fd):
-        def fn():
+    def compose(um:ZeroParamFunction, undo_fd:ZeroParamFunction) -> ZeroParamFunction:
+        def fn() -> None:
             undo_fd()
             um()
 
@@ -256,7 +266,7 @@ def try_solve(gs):
             undo()
 
 if __name__ == "__main__":
-    gs = GameState(make_stacks())
+    gs:GameState = GameState(make_stacks())
     undo = gs.update_foundations()
 
     try_solve(gs)

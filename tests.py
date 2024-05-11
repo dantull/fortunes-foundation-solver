@@ -1,11 +1,13 @@
 import unittest
 import solver
 
-def stack_of(cards):
+CardDesc = tuple[str, str]
+
+def stack_of(cards:list[CardDesc]) -> list[int]:
     return list(map(lambda c: solver.make_card(*c), cards))
 
 class TestCardCreation(unittest.TestCase):
-    def test_make_card(self):
+    def test_make_card(self) -> None:
         for rank in solver.ranks:
             for suit in solver.suits:
                 n = solver.make_card(rank, suit)
@@ -19,12 +21,12 @@ class TestCardCreation(unittest.TestCase):
             self.assertEqual(str(t), r)
             self.assertEqual(s, solver.TAROT_NAME)
 
-    def test_make_deck(self):
+    def test_make_deck(self) -> None:
         deck = solver.make_deck()
         self.assertEqual(70, len(deck))
 
-    def test_short_card(self):
-        def short_card(r, s):
+    def test_short_card(self) -> None:
+        def short_card(r:str, s:str) -> str:
             return solver.short_card(solver.make_card(r, s))
 
         self.assertEqual(short_card("5", "Thorns"), "5/")
@@ -35,7 +37,7 @@ class TestCardCreation(unittest.TestCase):
         self.assertEqual(short_card("0", solver.TAROT_NAME), "0")
         self.assertEqual(short_card("20", solver.TAROT_NAME), "20")
 
-    def test_playable_on(self):
+    def test_playable_on(self) -> None:
         cases = [
             (("5", "Coins"), ("6", "Coins"), True),
             (("5", "Coins"), ("4", "Coins"), True),
@@ -51,13 +53,13 @@ class TestCardCreation(unittest.TestCase):
         for (c1, c2, res) in cases:
             self.assertEqual(solver.playable_on(solver.make_card(*c1), solver.make_card(*c2)), res)
 
-    def test_first_empty(self):
+    def test_first_empty(self) -> None:
         arr = [[1], [2, 3], [], [4]]
         no_emp = [[1], [2, 2], [3]]
         self.assertEqual(solver.first_empty(arr), 2)
         self.assertEqual(solver.first_empty(no_emp), None)
 
-    def test_make_stacks(self):
+    def test_make_stacks(self) -> None:
         stacks = solver.make_stacks()
         self.assertEqual(len(stacks), 11)
         for i, s in enumerate(stacks):
@@ -66,11 +68,11 @@ class TestCardCreation(unittest.TestCase):
             else:
                 self.assertEqual(len(s), 7)
 
-    def test_empty_GameState(self):
+    def test_empty_GameState(self) -> None:
         gs = solver.GameState([])
         self.assertEqual(len(gs.all_moves()), 0)
 
-    def test_trivial_GameState(self):
+    def test_trivial_GameState(self) -> None:
         stacks = [
             stack_of([("2", "Coins")]),
             []
@@ -96,7 +98,7 @@ class TestCardCreation(unittest.TestCase):
 
         self.assertEqual(before, after)
 
-    def test_top_stacking(self):
+    def test_top_stacking(self) -> None:
         stacks = [
             stack_of([("8", "Goblets")]),
             stack_of([("4", "Coins")]),
