@@ -105,7 +105,6 @@ def make_stacks() -> list[list[Card]]:
 
 ZeroParamFunction = Callable[[], None]
 UndoRedoPair = tuple[ZeroParamFunction, ZeroParamFunction]
-MovesWithUndo = tuple[list[UndoRedoPair], ZeroParamFunction]
 
 class GameState:
     def __init__(self, stacks:list[list[Card]]):
@@ -120,10 +119,16 @@ class GameState:
             + "\n".join(map(card_list, self.stacks))
             + SEPARATOR)
 
+    def state_rep(self):
+        canon_stacks = sorted(filter(lambda t: len(t) > 0, self.stacks), key=lambda t: t[0])
+        return repr({'stacks': canon_stacks, 'stash': self.stash})
+
     def update_foundations(self) -> ZeroParamFunction:
         # generate a list of updates to apply to move cards from stacks to foundations, each
         # update is like a move (below): a pair of functions, one to perform the move and the
         # other to undo it (to do all updates, the undo has to be done in reverse order)
+
+        # FIXME: if the stash is occupied only the tarot foundations are accessible
 
         def move_top_to_foundation(si:int, fi:int) -> None:
             self.foundations[fi].append(self.stacks[si].pop())
@@ -177,19 +182,19 @@ class GameState:
 
         def move_to_stash(i:int) -> ZeroParamFunction:
             def fn() -> None:
-                print("stash", i)
+                # print("stash", i)
                 self.stash = self.stacks[i].pop()
             return fn
 
         def move_stack_top(i:int, j:int) -> ZeroParamFunction:
             def fn() -> None:
-                print("move stack", i, j)
+                # print("move stack", i, j)
                 self.stacks[j].append(self.stacks[i].pop())
             return fn
 
         def pop_stash(i:int) -> ZeroParamFunction:
             def fn() -> None:
-                print("pop stash", i)
+                # print("pop stash", i)
                 if not self.stash:
                     raise TypeError("stash must have a value")
                 self.stacks[i].append(self.stash)
@@ -231,6 +236,8 @@ class GameState:
 
         return moves
 
+MovesWithUndo = tuple[list[UndoRedoPair], ZeroParamFunction, str]
+
 def try_solve(gs:GameState) -> None:
     # basic solving strategy is to enumerate possible moves and try each
     # one, stashing the remaining moves for backtracking and continue
@@ -241,6 +248,7 @@ def try_solve(gs:GameState) -> None:
     # undoing the previous move (or maybe more generally returning to
     # any already processed state?)
     stack:list[MovesWithUndo] = []
+    reps:set[str] = set([gs.state_rep()])
 
     def compose(um:ZeroParamFunction, undo_fd:ZeroParamFunction) -> ZeroParamFunction:
         def fn() -> None:
@@ -253,19 +261,33 @@ def try_solve(gs:GameState) -> None:
 
     while True:
         print(gs)
+        print("states: ", len(reps))
         
         moves = moves or gs.all_moves()
 
-        if len(moves) > 0:
-            print("making move", len(stack))
+        while moves and len(moves) > 0:
             (dm, um) = moves.pop()
             dm()
-            stack.append((moves, compose(um, gs.update_foundations())))
-            moves = None
-        else:
-            (moves, undo) = stack.pop()
+
+            rep = gs.state_rep()
+
+            # use the reps set to avoid looping back to an earlier state
+            if not rep in reps:
+                reps.add(rep)
+                stack.append((moves, compose(um, gs.update_foundations()), rep))
+                moves = None
+            else:
+                um() # undo the move and try the next one
+
+        if len(stack) == 0:
+            print(f"failed! (visited {len(reps)} states)")
+            break
+
+        # we never found a move
+        if moves is not None:
+            (moves, undo, rep) = stack.pop()
             print("backtrack", len(stack))
-                # undo the last move and its updates
+            # undo the last move and its updates
             undo()
 
 if __name__ == "__main__":
