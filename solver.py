@@ -120,7 +120,7 @@ class GameState:
             + "\n".join(map(card_list, self.stacks))
             + SEPARATOR)
 
-    def update_foundations(self) -> Callable[[], None]:
+    def update_foundations(self) -> ZeroParamFunction:
         # generate a list of updates to apply to move cards from stacks to foundations, each
         # update is like a move (below): a pair of functions, one to perform the move and the
         # other to undo it (to do all updates, the undo has to be done in reverse order)
