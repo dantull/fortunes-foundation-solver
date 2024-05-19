@@ -1,5 +1,6 @@
 import unittest
 import solver
+from typing import Optional
 
 CardDesc = tuple[str, str]
 
@@ -81,6 +82,25 @@ class TestCardCreation(unittest.TestCase):
         gs = solver.GameState([])
         self.assertEqual(len(gs.all_moves()), 0)
 
+    def do_moves_and_checks(self, gs:solver.GameState, expected_count: Optional[int] = None) -> None:
+        before = repr(gs)
+        moves = gs.all_moves()
+        if expected_count is not None:
+            self.assertEqual(expected_count, len(moves))
+        for (do_move, undo_move) in moves:
+            rep_before = gs.state_rep()
+            repr_before = repr(gs)
+            do_move()
+            # the move should result in a state change of some sort but rep may not change
+            # because some moves/states are considered equivalent
+            self.assertNotEqual(repr_before, repr(gs))
+            self.assertIsNotNone(solver.first_empty(gs.stacks))
+            undo_move()
+            self.assertEqual(rep_before, gs.state_rep())
+            self.assertEqual(repr_before, repr(gs))
+
+        self.assertEqual(before, repr(gs))
+
     def test_trivial_GameState(self) -> None:
         stacks = [
             stack_of([("2", "Coins")]),
@@ -88,20 +108,13 @@ class TestCardCreation(unittest.TestCase):
         ]
 
         gs = solver.GameState(stacks)
-        moves = gs.all_moves()
-        self.assertEqual(len(moves), 2)
-
-        for (do_move, undo_move) in moves:
-            before = repr(gs)
-            do_move()
-            self.assertNotEqual(before, repr(gs))
-            undo_move()
-            after = repr(gs)
-            self.assertEqual(before, after)
+        self.do_moves_and_checks(gs, 2)
 
         before = repr(gs)
         undo = gs.update_foundations()
         self.assertNotEqual(before, repr(gs))
+        # only card is on foundations, no more moves
+        self.do_moves_and_checks(gs, 0)
         undo()
         after = repr(gs)
 
@@ -117,14 +130,7 @@ class TestCardCreation(unittest.TestCase):
 
         gs = solver.GameState(stacks)
         self.assertIsNone(solver.first_empty(gs.stacks))
-        before = repr(gs)
-        moves = gs.all_moves()
-        for (do_move, undo_move) in moves:
-            do_move()
-            self.assertIsNotNone(solver.first_empty(gs.stacks))
-            undo_move()
-
-        self.assertEqual(before, repr(gs))
+        self.do_moves_and_checks(gs)
 
 if __name__ == "__main__":
     unittest.main()
