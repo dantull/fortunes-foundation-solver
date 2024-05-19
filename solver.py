@@ -330,8 +330,28 @@ def parse_short_card(sc:str) -> int:
     else:
         return make_card(sc, TAROT_NAME)
 
+def parse_cards(scs:list[str]) -> list[Card]:
+    return list(map(parse_short_card, scs))
+
 if __name__ == "__main__":
-    gs:GameState = GameState(make_stacks())
+    if False:
+        stacks = list(map(parse_cards, [
+            ['5/', 'Jt', '9', '10', '2v', '2t', '8/'],
+            ['Qt', '7v', '9*', '6/', '10*', '5*', '9v'],
+            ['3v', 'K/', 'Q*', 'K*', 'J/', '1', '10v'],
+            ['4t', '3', '18', '2/', '4', '8v', '6'],
+            ['4*', '3*', '4v', '10t', '17', '7', '7*'],
+            [],
+            ['12', 'Kv', '9t', '8*', '8t', '11', '14'],
+            ['Q/', '5v', '19', 'Kt', 'Qv', '9/', '7/'],
+            ['6t', '16', '0', '5', '8', '2*', 'J*'],
+            ['Jv', '3/', '3t', '7t', '4/', '6v', '13'],
+            ['2', '15', '5t', '10/', '6*', '21', '20']
+        ]))
+
+    stacks = make_stacks()
+
+    gs:GameState = GameState(stacks)
     undo = gs.update_foundations()
 
     try_solve(gs)
