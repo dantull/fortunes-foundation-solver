@@ -227,6 +227,9 @@ class GameState:
                 self.stacks[j].append(self.stacks[i].pop())
             return fn
 
+        def move_stack_top_and_undo(i: int, j:int) -> tuple[ZeroParamFunction, ZeroParamFunction]:
+            return (move_stack_top(i, j), move_stack_top(j, i))
+
         def pop_stash(i:int) -> ZeroParamFunction:
             def fn() -> None:
                 self.pop_stash(i)
@@ -260,10 +263,8 @@ class GameState:
                 # only consider each pair once, but since playable_on is always symmetric, each
                 # found pair implies two possible (but opposite) moves
                 if i > j and len(s1) > 0 and len(s2) > 0 and playable_on(s1[-1], s2[-1]):
-                    move_to_s2 = move_stack_top(i, j)
-                    move_to_s1 = move_stack_top(j, i)
-                    moves.append((move_to_s1, move_to_s2))
-                    moves.append((move_to_s2, move_to_s1))
+                    moves.append(move_stack_top_and_undo(i, j))
+                    moves.append(move_stack_top_and_undo(j, i))
 
         return moves
 
