@@ -175,6 +175,17 @@ class GameState:
 
         return undo_all
 
+    def move_to_stash(self, si:int) -> None:
+        if self.stash is not None:
+            raise TypeError("stash must have a value")
+        self.stash = self.stacks[si].pop()
+
+    def pop_stash(self, si:int) -> None:
+        if self.stash is None:
+            raise TypeError("stash must have a value")
+        self.stacks[si].append(self.stash)
+        self.stash = None
+
     def all_moves(self) -> list[UndoRedoPair]:
         # kinds of moves:
         # * play a top card onto a top card (implies an inverse move exists)
@@ -198,7 +209,7 @@ class GameState:
 
         def move_to_stash(i:int) -> ZeroParamFunction:
             def fn() -> None:
-                self.stash = self.stacks[i].pop()
+                self.move_to_stash(i)
             return fn
 
         def move_stack_top(i:int, j:int) -> ZeroParamFunction:
@@ -208,11 +219,10 @@ class GameState:
 
         def pop_stash(i:int) -> ZeroParamFunction:
             def fn() -> None:
-                if not self.stash:
-                    raise TypeError("stash must have a value")
-                self.stacks[i].append(self.stash)
-                self.stash = None
+                self.pop_stash(i)
             return fn
+
+        empty = first_empty(self.stacks)
 
         # moves for each stack top to the foundation stash
         if self.stash is None:
@@ -222,10 +232,8 @@ class GameState:
         else:
             # moves of the stash card onto a stack
             for i, t in enumerate(self.stacks):
-                if len(t) == 0 or playable_on(self.stash, t[-1]):
+                if (len(t) == 0 and empty == i) or (len(t) > 0 and playable_on(self.stash, t[-1])):
                     moves.append((pop_stash(i), move_to_stash(i)))
-
-        empty = first_empty(self.stacks)
 
         # move each top to the first empty stack
         if empty is not None:

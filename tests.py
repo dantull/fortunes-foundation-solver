@@ -101,15 +101,7 @@ class TestCardCreation(unittest.TestCase):
 
         self.assertEqual(before, repr(gs))
 
-    def test_trivial_GameState(self) -> None:
-        stacks = [
-            stack_of([("2", "Coins")]),
-            []
-        ]
-
-        gs = solver.GameState(stacks)
-        self.do_moves_and_checks(gs, 2)
-
+    def confirm_trivial_solve(self, gs:solver.GameState):
         before = repr(gs)
         undo = gs.update_foundations()
         self.assertNotEqual(before, repr(gs))
@@ -119,6 +111,16 @@ class TestCardCreation(unittest.TestCase):
         after = repr(gs)
 
         self.assertEqual(before, after)
+
+    def test_trivial_GameState(self) -> None:
+        stacks = [
+            stack_of([("2", "Coins")]),
+            []
+        ]
+
+        gs = solver.GameState(stacks)
+        self.do_moves_and_checks(gs, 2)
+        self.confirm_trivial_solve(gs)
 
     def test_top_stacking(self) -> None:
         stacks = [
@@ -132,6 +134,20 @@ class TestCardCreation(unittest.TestCase):
         self.assertIsNone(solver.first_empty(gs.stacks))
         # each stack top can go to stash or to one other card
         self.do_moves_and_checks(gs, 8)
+
+    def test_moves_from_stash(self) -> None:
+        stacks = [
+            stack_of([("2", "Coins")]),
+            stack_of([("3", "Coins")]),
+            [],
+        ]
+
+        gs = solver.GameState(stacks)
+        gs.move_to_stash(0)
+
+        # move from stash to first empty stack or onto 3 or move 3 to empty stack
+        self.do_moves_and_checks(gs, 3)
+        self.confirm_trivial_solve(gs)
 
 if __name__ == "__main__":
     unittest.main()
