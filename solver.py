@@ -186,6 +186,9 @@ class GameState:
         self.stacks[si].append(self.stash)
         self.stash = None
 
+    def is_solved(self) -> bool:
+        return self.stash == None and len(list(filter(lambda s: len(s) > 0, self.stacks))) == 0
+
     def all_moves(self) -> list[UndoRedoPair]:
         # kinds of moves:
         # * play a top card onto a top card (implies an inverse move exists)
@@ -259,7 +262,7 @@ class GameState:
 
 MovesWithUndo = tuple[list[UndoRedoPair], ZeroParamFunction, str]
 
-def try_solve(gs:GameState) -> None:
+def try_solve(gs:GameState, out_fn:Callable[[str], None] = print) -> bool:
     # basic solving strategy is to enumerate possible moves and try each
     # one, stashing the remaining moves for backtracking and continue
     # after each move, let foundations update, but also preserve that
@@ -281,8 +284,8 @@ def try_solve(gs:GameState) -> None:
     moves = None
 
     while True:
-        print(gs)
-        print("states: ", len(reps))
+        out_fn(repr(gs))
+        out_fn(f"states: {len(reps)}")
         
         moves = moves or gs.all_moves()
 
@@ -300,14 +303,19 @@ def try_solve(gs:GameState) -> None:
             else:
                 um() # undo the move and try the next one
 
+        if gs.is_solved():
+            out_fn(repr(gs))
+            out_fn(f"success! (visited {len(reps)} states)")
+            return True
+
         if len(stack) == 0:
-            print(f"failed! (visited {len(reps)} states)")
-            break
+            out_fn(f"failed! (visited {len(reps)} states)")
+            return False
 
         # we never found a move
         if moves is not None:
             (moves, undo, rep) = stack.pop()
-            print("backtrack", len(stack))
+            out_fn(f"backtracking: {len(stack)}")
             # undo the last move and its updates
             undo()
 

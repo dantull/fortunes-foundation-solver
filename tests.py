@@ -101,12 +101,13 @@ class TestCardCreation(unittest.TestCase):
 
         self.assertEqual(before, repr(gs))
 
-    def confirm_trivial_solve(self, gs:solver.GameState):
+    def confirm_trivial_solve(self, gs:solver.GameState) -> None:
         before = repr(gs)
         undo = gs.update_foundations()
         self.assertNotEqual(before, repr(gs))
         # only card is on foundations, no more moves
         self.do_moves_and_checks(gs, 0)
+        self.assertTrue(gs.is_solved())
         undo()
         after = repr(gs)
 
@@ -148,6 +149,22 @@ class TestCardCreation(unittest.TestCase):
         # move from stash to first empty stack or onto 3 or move 3 to empty stack
         self.do_moves_and_checks(gs, 3)
         self.confirm_trivial_solve(gs)
+
+    def test_complex_but_trivial_solve(self) -> None:
+        stacks = [
+            stack_of([(str(n), "Coins") for n in range(10, 1, -1)]),
+            stack_of([(str(n), "Goblets") for n in range(10, 1, -1)]),
+            stack_of([(str(n), "Thorns") for n in range(10, 1, -1)]),
+            stack_of([(str(n), solver.TAROT_NAME) for n in range(15, solver.TAROT_COUNT)]),
+            stack_of([(str(n), solver.TAROT_NAME) for n in range(14, -1, -1)]),
+            [],
+        ]
+
+        gs = solver.GameState(stacks)
+        self.confirm_trivial_solve(gs)
+
+        gs.update_foundations()
+        solver.try_solve(gs, lambda *args: None)
 
 if __name__ == "__main__":
     unittest.main()
