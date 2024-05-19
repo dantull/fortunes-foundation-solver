@@ -75,12 +75,20 @@ def short_card(n:Card) -> str:
 def playable_on(c1:Card, c2:Card) -> bool:
     return abs(c1 - c2) == 1
 
-def take_sequence(cs:list[Card]) -> list[Card]:
-    seq = [cs.pop()]
-    while len(cs) > 0 and playable_on(seq[-1], cs[-1]):
-        seq.append(cs.pop())
+def top_sequence_len(cs:list[Card]) -> int:
+    n = 1
+    while len(cs) > n and playable_on(cs[-n], cs[-(n+1)]):
+        n += 1
 
-    return seq
+    return min(len(cs), n)
+
+def take_sequence(cs:list[Card]) -> list[Card]:
+    n = top_sequence_len(cs)
+    res = cs[-n:]
+    res.reverse()
+    del cs[-n:]
+
+    return res
 
 def fisher_yates_shuffle(arr:list[Card]) -> None:
     for i in range(len(arr)-1, 0, -1):
