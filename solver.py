@@ -125,7 +125,7 @@ class GameState:
             + "\n".join(map(card_list, self.stacks))
             + SEPARATOR)
 
-    def state_rep(self):
+    def state_rep(self) -> str:
         canon_stacks = sorted(filter(lambda t: len(t) > 0, self.stacks), key=lambda t: t[0])
         return repr({'stacks': canon_stacks, 'stash': self.stash})
 
