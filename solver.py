@@ -49,8 +49,14 @@ def make_deck() -> list[Card]:
 
     return cards
 
+def suit(n:Card) -> int:
+    return n // SEGMENT
+
+def is_tarot(n:Card) -> bool:
+    return suit(n) >= len(suits)
+
 def card(n:Card) -> tuple[str, str]:
-    d = n // SEGMENT
+    d = suit(n)
 
     if d < len(suits):
         return (ranks[n % 16 - 1], suits[d])
@@ -128,8 +134,6 @@ class GameState:
         # update is like a move (below): a pair of functions, one to perform the move and the
         # other to undo it (to do all updates, the undo has to be done in reverse order)
 
-        # FIXME: if the stash is occupied only the tarot foundations are accessible
-
         def move_top_to_foundation(si:int, fi:int) -> None:
             self.foundations[fi].append(self.stacks[si].pop())
 
@@ -137,15 +141,25 @@ class GameState:
             def fn() -> None:
                 self.stacks[si].append(self.foundations[fi].pop())
             return fn
+        
+        def return_to_stash(fi:int) -> ZeroParamFunction:
+            def fn() -> None:
+                self.stash = self.foundations[fi].pop()
+            return fn
 
         updates:list[ZeroParamFunction] = []
-        
+
         while True:
             start = len(updates)
-            for i, s in enumerate(self.stacks):
-                for j, f in enumerate(self.foundations):
+            for j, f in enumerate(self.foundations):
+                if self.stash is not None and playable_on(self.stash, f[-1]):
+                    self.foundations[j].append(self.stash)
+                    self.stash = None
+                    updates.append(return_to_stash(j))
+
+                for i, s in enumerate(self.stacks):
                     if len(s) > 0:
-                        if playable_on(s[-1], f[-1]):
+                        if (self.stash is None or is_tarot(self.stash)) and playable_on(s[-1], f[-1]):
                             move_top_to_foundation(i, j)
                             updates.append(return_to_stack(i, j))
 
