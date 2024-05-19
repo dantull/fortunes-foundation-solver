@@ -60,6 +60,29 @@ class TestCardCreation(unittest.TestCase):
         for (c1, c2, res) in cases:
             self.assertEqual(solver.playable_on(solver.make_card(*c1), solver.make_card(*c2)), res)
 
+    def test_take_full_sequence(self) -> None:
+        cards = ["5/", "6/", "7/"]
+        arr = solver.parse_cards(cards)
+        arr_before = arr.copy()
+        arr_before.reverse()
+        self.assertListEqual(solver.take_sequence(arr), arr_before)
+        self.assertListEqual(arr, [])
+
+    def test_take_singleton_sequence(self) -> None:
+        cards = ["5*", "6*", "7/"]
+        arr = solver.parse_cards(cards)
+
+        self.assertListEqual(solver.take_sequence(arr), [solver.parse_short_card("7/")])
+        self.assertListEqual(arr, solver.parse_cards(["5*", "6*"]))
+
+    def test_take_partial_sequence(self) -> None:
+        cards = ["5v", "6v", "7", "8", "9"]
+        arr = solver.parse_cards(cards)
+
+        self.assertListEqual(solver.take_sequence(arr), solver.parse_cards(["9", "8", "7"]))
+        self.assertListEqual(arr, solver.parse_cards(["5v", "6v"]))
+
+
     def test_first_empty(self) -> None:
         arr = [[1], [2, 3], [], [4]]
         no_emp = [[1], [2, 2], [3]]
