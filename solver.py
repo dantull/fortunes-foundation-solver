@@ -177,7 +177,7 @@ class GameState:
 
     def move_to_stash(self, si:int) -> None:
         if self.stash is not None:
-            raise TypeError("stash must have a value")
+            raise TypeError("stash must not have a value")
         self.stash = self.stacks[si].pop()
 
     def pop_stash(self, si:int) -> None:

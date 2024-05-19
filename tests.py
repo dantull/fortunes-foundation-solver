@@ -1,6 +1,6 @@
 import unittest
 import solver
-from typing import Optional
+from typing import Callable, Optional
 
 CardDesc = tuple[str, str]
 
@@ -202,6 +202,46 @@ class TestCardCreation(unittest.TestCase):
 
         # tarot cards aren't blocked by the stash, so this _is_ solvable
         self.assertTrue(solver.try_solve(gs, noop_out_fn))
+
+    def assertThrows(self, fn:Callable[[], None]):
+        threw = False
+        try:
+            fn()
+        except:
+            threw = True
+            pass
+
+        self.assertTrue(threw)
+
+    def test_move_to_stash_bounds_check(self) -> None:
+        stacks = [
+            stack_of([("2", "Thorns")]),
+        ]
+
+        gs = solver.GameState(stacks)
+
+        self.assertThrows(lambda: gs.move_to_stash(1))
+
+    def test_stash_occupied_check(self) -> None:
+        stacks = [
+            stack_of([("2", "Thorns")]),
+        ]
+
+        gs = solver.GameState(stacks)
+
+        rep = gs.state_rep()
+
+        gs.move_to_stash(0)
+
+        # cannot move to occupied stash
+        self.assertThrows(lambda: gs.move_to_stash(0))
+
+        gs.pop_stash(0)
+
+        # cannot pop unoccupied stash
+        self.assertThrows(lambda: gs.pop_stash(0))
+
+        self.assertEqual(rep, gs.state_rep())
 
 if __name__ == "__main__":
     unittest.main()
