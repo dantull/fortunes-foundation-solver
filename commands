@@ -1,0 +1,5 @@
+. .venv/Scripts/activate
+pip install -r requirements
+python -m coverage run tests.py 
+python -m coverage report -m
+mypy --strict *.py
