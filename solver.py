@@ -198,19 +198,16 @@ class GameState:
 
         def move_to_stash(i:int) -> ZeroParamFunction:
             def fn() -> None:
-                # print("stash", i)
                 self.stash = self.stacks[i].pop()
             return fn
 
         def move_stack_top(i:int, j:int) -> ZeroParamFunction:
             def fn() -> None:
-                # print("move stack", i, j)
                 self.stacks[j].append(self.stacks[i].pop())
             return fn
 
         def pop_stash(i:int) -> ZeroParamFunction:
             def fn() -> None:
-                # print("pop stash", i)
                 if not self.stash:
                     raise TypeError("stash must have a value")
                 self.stacks[i].append(self.stash)
