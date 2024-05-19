@@ -222,7 +222,6 @@ class GameState:
         # a move is a pair of functions, one that performs the move and
         # one that restores the GameState back to its former state.
 
-        # FIXME: optimize: treat moving "clumps" of cards as a single move
         moves:list[UndoRedoPair] = []
 
         def move_to_stash(i:int) -> ZeroParamFunction:
@@ -230,13 +229,21 @@ class GameState:
                 self.move_to_stash(i)
             return fn
 
-        def move_stack_top(i:int, j:int) -> ZeroParamFunction:
-            def fn() -> None:
-                self.stacks[j].append(self.stacks[i].pop())
-            return fn
-
+        # for stack to stack moves of multiple items in one go (common play pattern)
         def move_stack_top_and_undo(i: int, j:int) -> tuple[ZeroParamFunction, ZeroParamFunction]:
-            return (move_stack_top(i, j), move_stack_top(j, i))
+            n = top_sequence_len(self.stacks[i])
+
+            def fn() -> None:
+                taken = take_sequence(self.stacks[i])
+                self.stacks[j] += taken
+
+            def undo() -> None:
+                taken = self.stacks[j][-n:]
+                taken.reverse()
+                del self.stacks[j][-n:]
+                self.stacks[i] += taken
+
+            return (fn, undo)
 
         def pop_stash(i:int) -> ZeroParamFunction:
             def fn() -> None:
@@ -259,7 +266,7 @@ class GameState:
         # move each top to the first empty stack
         if empty is not None:
             def move_empty_pair(i:int) -> UndoRedoPair:
-                return (move_stack_top(i, empty), move_stack_top(empty, i))
+                return (move_stack_top_and_undo(i, empty))
 
             for i, t in enumerate(self.stacks):
                 if len(t) > 0:
