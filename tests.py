@@ -197,7 +197,7 @@ class TestCardCreation(unittest.TestCase):
         # tarot cards aren't blocked by the stash, so this _is_ solvable
         self.assertTrue(solver.try_solve(gs, noop_out_fn))
 
-    def assertThrows(self, fn:Callable[[], None]):
+    def assertThrows(self, fn:Callable[[], None]) -> None:
         threw = False
         try:
             fn()
