@@ -39,16 +39,10 @@ class TestCardCreation(unittest.TestCase):
         self.assertTrue(is_tarot("20", solver.TAROT_NAME))
 
     def test_short_card(self) -> None:
-        def short_card(r:str, s:str) -> str:
-            return solver.short_card(solver.make_card(r, s))
-
-        self.assertEqual(short_card("5", "Thorns"), "5/")
-        self.assertEqual(short_card("K", "Swords"), "Kt")
-        self.assertEqual(short_card("10", "Goblets"), "10v")
-        self.assertEqual(short_card("A", "Swords"), "At")
-        self.assertEqual(short_card("8", "Coins"), "8*")
-        self.assertEqual(short_card("0", solver.TAROT_NAME), "0")
-        self.assertEqual(short_card("20", solver.TAROT_NAME), "20")
+        deck = solver.make_deck()
+        shorts = map(solver.short_card, deck)
+        cards = map(solver.parse_short_card, shorts)
+        self.assertListEqual(deck, list(cards))
 
     def test_playable_on(self) -> None:
         cases = [

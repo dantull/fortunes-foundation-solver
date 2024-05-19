@@ -320,6 +320,16 @@ def try_solve(gs:GameState, out_fn:Callable[[str], None] = print) -> bool:
             # undo the last move and its updates
             undo()
 
+short_to_full_suit = {v: k for k, v in short_suits.items()}
+
+def parse_short_card(sc:str) -> int:
+    maybe_suit = sc[-1]
+
+    if maybe_suit in short_to_full_suit:
+        return make_card(sc[0:-1], short_to_full_suit[maybe_suit])
+    else:
+        return make_card(sc, TAROT_NAME)
+
 if __name__ == "__main__":
     gs:GameState = GameState(make_stacks())
     undo = gs.update_foundations()
