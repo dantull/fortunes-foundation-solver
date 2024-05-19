@@ -222,7 +222,7 @@ class GameState:
         else:
             # moves of the stash card onto a stack
             for i, t in enumerate(self.stacks):
-                if len(t) > 0 and playable_on(self.stash, t[-1]):
+                if len(t) == 0 or playable_on(self.stash, t[-1]):
                     moves.append((pop_stash(i), move_to_stash(i)))
 
         empty = first_empty(self.stacks)
