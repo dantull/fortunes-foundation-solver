@@ -192,6 +192,8 @@ class GameState:
         #
         # a move is a pair of functions, one that performs the move and
         # one that restores the GameState back to its former state.
+
+        # FIXME: optimize: treat moving "clumps" of cards as a single move
         moves:list[UndoRedoPair] = []
 
         def move_to_stash(i:int) -> ZeroParamFunction:
