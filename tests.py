@@ -130,7 +130,8 @@ class TestCardCreation(unittest.TestCase):
 
         gs = solver.GameState(stacks)
         self.assertIsNone(solver.first_empty(gs.stacks))
-        self.do_moves_and_checks(gs)
+        # each stack top can go to stash or to one other card
+        self.do_moves_and_checks(gs, 8)
 
 if __name__ == "__main__":
     unittest.main()
