@@ -7,6 +7,9 @@ CardDesc = tuple[str, str]
 def stack_of(cards:list[CardDesc]) -> list[solver.Card]:
     return list(map(lambda c: solver.make_card(*c), cards))
 
+def noop_out_fn(s:str) -> None:
+    pass
+
 class TestCardCreation(unittest.TestCase):
     def test_make_card(self) -> None:
         for rank in solver.ranks:
@@ -164,7 +167,41 @@ class TestCardCreation(unittest.TestCase):
         self.confirm_trivial_solve(gs)
 
         gs.update_foundations()
-        solver.try_solve(gs, lambda *args: None)
+        self.assertTrue(solver.try_solve(gs, noop_out_fn))
+
+    def test_fast_but_nontrivial_solve(self) -> None:
+        stacks = [
+            stack_of([("2", "Thorns"), ("3", "Goblets"), ("3", "Coins"), ("4", "Coins")]),
+            stack_of([("2", "Coins"), ("2", "Goblets"), ("3", "Thorns"), ("5", "Coins")]),
+            stack_of([("4", "Thorns"), ("4", "Goblets"), ("6", "Coins")]),
+            []
+        ]
+
+        gs = solver.GameState(stacks)
+        gs.update_foundations()
+        self.assertTrue(solver.try_solve(gs, noop_out_fn))
+
+    def test_fast_impossible_case(self) -> None:
+        stacks = [
+            stack_of([("2", "Thorns"), ("3", "Thorns")]),
+        ]
+
+        gs = solver.GameState(stacks)
+        gs.update_foundations()
+
+        # without a free stack, these cannot be cleared
+        self.assertFalse(solver.try_solve(gs, noop_out_fn))
+
+    def test_tarot_stash_edge_case(self) -> None:
+        stacks = [
+            stack_of([("0", solver.TAROT_NAME), ("1", solver.TAROT_NAME)]),
+        ]
+
+        gs = solver.GameState(stacks)
+        gs.update_foundations()
+
+        # tarot cards aren't blocked by the stash, so this _is_ solvable
+        self.assertTrue(solver.try_solve(gs, noop_out_fn))
 
 if __name__ == "__main__":
     unittest.main()

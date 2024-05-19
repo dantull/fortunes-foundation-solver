@@ -305,7 +305,7 @@ def try_solve(gs:GameState, out_fn:Callable[[str], None] = print) -> bool:
 
         if gs.is_solved():
             out_fn(repr(gs))
-            out_fn(f"success! (visited {len(reps)} states)")
+            out_fn(f"success! (visited {len(reps)} states, took {len(stack)} moves)")
             return True
 
         if len(stack) == 0:
@@ -315,6 +315,7 @@ def try_solve(gs:GameState, out_fn:Callable[[str], None] = print) -> bool:
         # we never found a move
         if moves is not None:
             (moves, undo, rep) = stack.pop()
+            out_fn(repr(gs))
             out_fn(f"backtracking: {len(stack)}")
             # undo the last move and its updates
             undo()
