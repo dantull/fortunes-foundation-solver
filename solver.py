@@ -291,9 +291,13 @@ def try_solve(gs:GameState, out_fn:Callable[[str], None] = print) -> bool:
     # after each move, let foundations update, but also preserve that
     # undo script to get back to original state
     #
-    # One key issue is that it will be necessary to avoid immediately
-    # undoing the previous move (or maybe more generally returning to
-    # any already processed state?)
+    # to avoid loops, a set of state_rep instances (canonicalized form of
+    # serialized game state) are kept to avoid returning to already visited
+    # game states and getting stuck in loops). This can make the process
+    # quite memory intensive if a solution takes a long time to find.
+    #
+    # This has not really been optimized yet beyond the change to treat
+    # stacks of card sequences as single move operatios.
     stack:list[MovesWithUndo] = []
     reps:set[str] = set([gs.state_rep()])
 
