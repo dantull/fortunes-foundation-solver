@@ -335,6 +335,8 @@ def try_solve(gs:GameState, out_fn:Callable[[str], None] = print) -> bool:
                 undo()
                 print(repr(gs))
 
+            print("read solution upward from here")
+
             return True
 
         if len(stack) == 0:
