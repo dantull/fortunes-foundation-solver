@@ -393,7 +393,7 @@ if __name__ == "__main__":
             ['4v', '10t', '8t', '7t', 'Q/', 'Jt', '4*'],
         ]))
 
-    if True:
+    if False:
         stacks = list(map(parse_cards, [
             ['3t', '5*', '11', '5/', '14', '3*', '9'],
             ['Kt', '5t', '1', 'J/', '18', '7', '15'],
@@ -408,7 +408,7 @@ if __name__ == "__main__":
             ['9t', '17', 'Kv', 'K*', '8/', '5v', '10*'],
         ]))
 
-    # stacks = make_stacks()
+    stacks = make_stacks()
 
     gs:GameState = GameState(stacks)
     undo = gs.update_foundations()
