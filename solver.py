@@ -331,11 +331,11 @@ def try_solve(gs:GameState, out_fn:Callable[[str], None] = print) -> bool:
             out_fn(f"success! (visited {len(reps)} states, took {len(stack)} moves)")
             while len(stack) > 0:
                 (_, undo, rep, desc) = stack.pop()
-                print(desc)
+                out_fn(desc)
                 undo()
-                print(repr(gs))
+                out_fn(repr(gs))
 
-            print("read solution upward from here")
+            out_fn("read solution upward from here")
 
             return True
 
