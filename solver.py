@@ -328,8 +328,13 @@ def try_solve(gs:GameState, out_fn:Callable[[str], None] = print) -> bool:
 
         if gs.is_solved():
             out_fn(repr(gs))
-            out_fn("\n".join(map(lambda s: s[3], stack)))
             out_fn(f"success! (visited {len(reps)} states, took {len(stack)} moves)")
+            while len(stack) > 0:
+                (_, undo, rep, desc) = stack.pop()
+                print(desc)
+                undo()
+                print(repr(gs))
+
             return True
 
         if len(stack) == 0:
@@ -373,7 +378,37 @@ if __name__ == "__main__":
             ['2', '15', '5t', '10/', '6*', '21', '20']
         ]))
 
-    stacks = make_stacks()
+    if False:
+        stacks = list(map(parse_cards, [
+            ['Qv', '15', '2t', '5*', '5t', '6*', '6'],
+            ['9t', '3t', '6v', 'Q*', '8*', '3', '7v'],
+            ['3*', '8/', '2v', '2', '20', '17', '9/'],
+            ['2*', '6/', '18', '6t', '7/', '5v', '13'],
+            ['4t', '16', '0', '10', '12', '10v', '10/'],
+            [],
+            ['J*', '8', '14', '4', '7*', '21', '5'],
+            ['3v', '10*', '1', '3/', 'Qt', '7', 'Kt'],
+            ['K/', '4/', 'Jv', '9*', '2/', 'K*', '8v'],
+            ['Kv', '9', '19', 'J/', '11', '5/', '9v'],
+            ['4v', '10t', '8t', '7t', 'Q/', 'Jt', '4*'],
+        ]))
+
+    if True:
+        stacks = list(map(parse_cards, [
+            ['3t', '5*', '11', '5/', '14', '3*', '9'],
+            ['Kt', '5t', '1', 'J/', '18', '7', '15'],
+            ['16', '2', '2*', 'K/', '3v', '6*', '10'],
+            ['Q/', '19', '7v', '8v', '8t', '10v', '5'],
+            ['6t', '6', 'Qt', '2t', '21', '10/', 'Q*'],
+            [],
+            ['2v', '8*', '4', '4/', '8', '12', '9/'],
+            ['2/', '6v', '3', '0', 'Qv', '3/', 'J*'],
+            ['4v', '7t', '7/', '6/', '10t', '9v', '4*'],
+            ['Jv', '9*', 'Jt', '4t', '13', '20', '7*'],
+            ['9t', '17', 'Kv', 'K*', '8/', '5v', '10*'],
+        ]))
+
+    # stacks = make_stacks()
 
     gs:GameState = GameState(stacks)
     undo = gs.update_foundations()
