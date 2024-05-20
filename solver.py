@@ -125,7 +125,7 @@ def make_stacks() -> list[list[Card]]:
     return stacks
 
 ZeroParamFunction = Callable[[], None]
-UndoRedoPair = tuple[ZeroParamFunction, ZeroParamFunction]
+MoveItem = tuple[ZeroParamFunction, ZeroParamFunction, str]
 
 class GameState:
     def __init__(self, stacks:list[list[Card]]):
@@ -174,7 +174,7 @@ class GameState:
 
                 for i, s in enumerate(self.stacks):
                     if len(s) > 0:
-                        if (self.stash is None or is_tarot(self.stash)) and playable_on(s[-1], f[-1]):
+                        if (self.stash is None or is_tarot(s[-1])) and playable_on(s[-1], f[-1]):
                             move_top_to_foundation(i, j)
                             updates.append(return_to_stack(i, j))
 
@@ -204,7 +204,7 @@ class GameState:
     def is_solved(self) -> bool:
         return self.stash == None and len(list(filter(lambda s: len(s) > 0, self.stacks))) == 0
 
-    def all_moves(self) -> list[UndoRedoPair]:
+    def all_moves(self) -> list[MoveItem]:
         # kinds of moves:
         # * play a top card onto a top card (implies an inverse move exists)
         # * play a top card onto the stash (foundation) if available
@@ -222,7 +222,7 @@ class GameState:
         # a move is a pair of functions, one that performs the move and
         # one that restores the GameState back to its former state.
 
-        moves:list[UndoRedoPair] = []
+        moves:list[MoveItem] = []
 
         def move_to_stash(i:int) -> ZeroParamFunction:
             def fn() -> None:
@@ -230,7 +230,7 @@ class GameState:
             return fn
 
         # for stack to stack moves of multiple items in one go (common play pattern)
-        def move_stack_top_and_undo(i: int, j:int) -> tuple[ZeroParamFunction, ZeroParamFunction]:
+        def move_stack_top_and_undo(i: int, j:int) -> MoveItem:
             n = top_sequence_len(self.stacks[i])
 
             def fn() -> None:
@@ -243,7 +243,7 @@ class GameState:
                 del self.stacks[j][-n:]
                 self.stacks[i] += taken
 
-            return (fn, undo)
+            return (fn, undo, f"move items from stack {i + 1} to {j + 1}")
 
         def pop_stash(i:int) -> ZeroParamFunction:
             def fn() -> None:
@@ -256,16 +256,16 @@ class GameState:
         if self.stash is None:
             for i, t in enumerate(self.stacks):
                 if len(t) > 0:
-                    moves.append((move_to_stash(i), pop_stash(i)))
+                    moves.append((move_to_stash(i), pop_stash(i), f"stash top of stack {i + 1}"))
         else:
             # moves of the stash card onto a stack
             for i, t in enumerate(self.stacks):
                 if (len(t) == 0 and empty == i) or (len(t) > 0 and playable_on(self.stash, t[-1])):
-                    moves.append((pop_stash(i), move_to_stash(i)))
+                    moves.append((pop_stash(i), move_to_stash(i), f"unstash to stack {i + 1}"))
 
         # move each top to the first empty stack
         if empty is not None:
-            def move_empty_pair(i:int) -> UndoRedoPair:
+            def move_empty_pair(i:int) -> MoveItem:
                 return (move_stack_top_and_undo(i, empty))
 
             for i, t in enumerate(self.stacks):
@@ -283,7 +283,7 @@ class GameState:
 
         return moves
 
-MovesWithUndo = tuple[list[UndoRedoPair], ZeroParamFunction, str]
+MovesWithUndo = tuple[list[MoveItem], ZeroParamFunction, str, str]
 
 def try_solve(gs:GameState, out_fn:Callable[[str], None] = print) -> bool:
     # basic solving strategy is to enumerate possible moves and try each
@@ -313,7 +313,7 @@ def try_solve(gs:GameState, out_fn:Callable[[str], None] = print) -> bool:
         moves = moves or gs.all_moves()
 
         while moves and len(moves) > 0:
-            (dm, um) = moves.pop()
+            (dm, um, desc) = moves.pop()
             dm()
 
             rep = gs.state_rep()
@@ -321,13 +321,14 @@ def try_solve(gs:GameState, out_fn:Callable[[str], None] = print) -> bool:
             # use the reps set to avoid looping back to an earlier state
             if not rep in reps:
                 reps.add(rep)
-                stack.append((moves, compose(um, gs.update_foundations()), rep))
+                stack.append((moves, compose(um, gs.update_foundations()), rep, desc))
                 moves = None
             else:
                 um() # undo the move and try the next one
 
         if gs.is_solved():
             out_fn(repr(gs))
+            out_fn("\n".join(map(lambda s: s[3], stack)))
             out_fn(f"success! (visited {len(reps)} states, took {len(stack)} moves)")
             return True
 
@@ -337,7 +338,7 @@ def try_solve(gs:GameState, out_fn:Callable[[str], None] = print) -> bool:
 
         # we never found a move
         if moves is not None:
-            (moves, undo, rep) = stack.pop()
+            (moves, undo, rep, desc) = stack.pop()
             out_fn(repr(gs))
             out_fn(f"backtracking: {len(stack)}")
             # undo the last move and its updates

@@ -107,7 +107,7 @@ class TestCardCreation(unittest.TestCase):
         moves = gs.all_moves()
         if expected_count is not None:
             self.assertEqual(expected_count, len(moves))
-        for (do_move, undo_move) in moves:
+        for (do_move, undo_move, _) in moves:
             rep_before = gs.state_rep()
             repr_before = repr(gs)
             do_move()
@@ -208,6 +208,17 @@ class TestCardCreation(unittest.TestCase):
 
         # without a free stack, these cannot be cleared
         self.assertFalse(solver.try_solve(gs, noop_out_fn))
+
+    def test_blocked_stash(self) -> None:
+        stacks = [
+            stack_of([("2", "Thorns"), ("11", solver.TAROT_NAME)]),
+        ]
+
+        gs = solver.GameState(stacks)
+        gs.move_to_stash(0)
+        repr_before = repr(gs)
+        gs.update_foundations()
+        self.assertEqual(repr_before, repr(gs))
 
     def test_tarot_stash_edge_case(self) -> None:
         stacks = [
