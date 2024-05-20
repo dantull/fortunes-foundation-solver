@@ -369,6 +369,10 @@ def parse_cards(scs:list[str]) -> list[Card]:
     return list(map(parse_short_card, scs))
 
 if __name__ == "__main__":
+    # the 3 if False blocks below configure the GameState with a
+    # deal transcribed from the actual game (which does appear to
+    # only present winnable deals)
+
     if False:
         stacks = list(map(parse_cards, [
             ['5/', 'Jt', '9', '10', '2v', '2t', '8/'],
