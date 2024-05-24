@@ -284,8 +284,12 @@ class GameState:
         return moves
 
 MovesWithUndo = tuple[list[MoveItem], ZeroParamFunction, str, str]
+OutputFn = Callable[[str], None]
 
-def try_solve(gs:GameState, out_fn:Callable[[str], None] = print) -> bool:
+def noop_output(s:str) -> None:
+    pass
+
+def try_solve(gs:GameState, out_fn:OutputFn = print, verbose_fn:Optional[OutputFn] = None) -> bool:
     # basic solving strategy is to enumerate possible moves and try each
     # one, stashing the remaining moves for backtracking and continue
     # after each move, let foundations update, but also preserve that
@@ -311,8 +315,9 @@ def try_solve(gs:GameState, out_fn:Callable[[str], None] = print) -> bool:
     moves = None
 
     while True:
-        out_fn(repr(gs))
-        out_fn(f"states: {len(reps)}")
+        if verbose_fn:
+            verbose_fn(repr(gs))
+            verbose_fn(f"states: {len(reps)}")
         
         moves = moves or gs.all_moves()
 
@@ -350,8 +355,9 @@ def try_solve(gs:GameState, out_fn:Callable[[str], None] = print) -> bool:
         # we never found a move
         if moves is not None:
             (moves, undo, rep, desc) = stack.pop()
-            out_fn(repr(gs))
-            out_fn(f"backtracking: {len(stack)}")
+            if verbose_fn:
+                verbose_fn(repr(gs))
+                verbose_fn(f"backtracking: {len(stack)}")
             # undo the last move and its updates
             undo()
 
