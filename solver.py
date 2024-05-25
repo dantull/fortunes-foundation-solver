@@ -374,10 +374,15 @@ def parse_short_card(sc:str) -> int:
 def parse_cards(scs:list[str]) -> list[Card]:
     return list(map(parse_short_card, scs))
 
+def to_stack(s:str) -> list[str]:
+    return s.split(' ')
+
 if __name__ == "__main__":
     # the 3 if False blocks below configure the GameState with a
     # deal transcribed from the actual game (which does appear to
     # only present winnable deals)
+
+    stacks = make_stacks()
 
     if False:
         stacks = list(map(parse_cards, [
@@ -424,7 +429,20 @@ if __name__ == "__main__":
             ['9t', '17', 'Kv', 'K*', '8/', '5v', '10*'],
         ]))
 
-    stacks = make_stacks()
+    if False:
+        stacks = list(map(parse_cards, [
+            to_stack('11 4t 9t 5/ 6* 12 4'),
+            to_stack('9* 3v 7* K/ 20 6t 18'),
+            to_stack('Kt 10 2v J/ 8 4* 13'),
+            to_stack('9/ 8/ 16 2/ 6/ 10t 9v'),
+            to_stack('3* 4/ 14 Q* 3/ 21 1'),
+            [],
+            to_stack('Q/ 8t 2t 15 Jv Jt 19'),
+            to_stack('Qv 8* 6 3t 2 10v 6v'),
+            to_stack('7t 5v 17 7v 8v 3 7/'),
+            to_stack('10* 4v 9 5* Kv 5t J*'),
+            to_stack('Qt 0 K* 2* 5 10/ 7'),
+        ]))
 
     gs:GameState = GameState(stacks)
     undo = gs.update_foundations()
